@@ -1,0 +1,36 @@
+{
+  "name": "screen-recorder-app",
+  "version": "1.0.0",
+  "description": "A complete screen recording solution with React Native mobile app and Next.js web dashboard",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:mobile\"",
+    "dev:web": "cd web-dashboard && npm run dev",
+    "dev:mobile": "cd mobile-app && npm start",
+    "build": "npm run build:web",
+    "build:web": "cd web-dashboard && npm run build",
+    "build:mobile": "cd mobile-app && npm run build",
+    "start": "cd web-dashboard && npm start",
+    "install:all": "npm install && cd web-dashboard && npm install && cd ../mobile-app && npm install",
+    "clean": "rm -rf node_modules web-dashboard/node_modules mobile-app/node_modules",
+    "setup": "npm run install:all && npm run setup:supabase",
+    "setup:supabase": "echo 'Please run the SQL scripts in supabase-setup.sql and supabase-setup-updated.sql in your Supabase dashboard'"
+  },
+  "keywords": [
+    "screen-recorder",
+    "react-native",
+    "nextjs",
+    "supabase",
+    "mobile-app",
+    "web-dashboard"
+  ],
+  "author": "Glory Composing",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}
