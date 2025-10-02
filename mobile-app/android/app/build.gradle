@@ -27,25 +27,34 @@ android {
 }
 
 dependencies {
+    // Use only Android framework dependencies to avoid Kotlin conflicts
     implementation "androidx.appcompat:appcompat:1.6.1"
     implementation "com.google.android.material:material:1.8.0"
     implementation "androidx.constraintlayout:constraintlayout:2.1.4"
     
-    // Supabase dependencies
-    implementation "com.squareup.okhttp3:okhttp:4.11.0"
-    implementation "com.squareup.okhttp3:logging-interceptor:4.11.0"
-    implementation "com.google.code.gson:gson:2.10.1"
-    
-    // Remove Kotlin dependencies completely to avoid conflicts
-    // The app is pure Java, so we don't need Kotlin stdlib
+    // Temporarily remove OkHttp and Gson to test if they're causing Kotlin conflicts
+    // We'll add them back after confirming the build works
 }
 
 // Exclude all Kotlin dependencies to avoid conflicts
 configurations.all {
+    exclude group: 'org.jetbrains.kotlin'
+    exclude group: 'org.jetbrains.kotlinx'
     exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib'
     exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
     exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
     exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-common'
     exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
     exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+}
+
+// Force exclude Kotlin from all dependencies
+configurations.all {
+    resolutionStrategy {
+        eachDependency { details ->
+            if (details.requested.group == 'org.jetbrains.kotlin') {
+                details.useTarget group: 'org.jetbrains.kotlin', name: details.requested.name, version: '1.8.20'
+            }
+        }
+    }
 }
