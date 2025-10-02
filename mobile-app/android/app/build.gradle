@@ -27,16 +27,11 @@ android {
 }
 
 dependencies {
-    // Use only Android framework dependencies to avoid Kotlin conflicts
-    implementation "androidx.appcompat:appcompat:1.6.1"
-    implementation "com.google.android.material:material:1.8.0"
-    implementation "androidx.constraintlayout:constraintlayout:2.1.4"
-    
-    // Temporarily remove OkHttp and Gson to test if they're causing Kotlin conflicts
-    // We'll add them back after confirming the build works
+    // Use absolutely minimal dependencies - only basic Android framework
+    // No external libraries that might pull in Kotlin dependencies
 }
 
-// Exclude all Kotlin dependencies to avoid conflicts
+// Completely exclude all Kotlin dependencies
 configurations.all {
     exclude group: 'org.jetbrains.kotlin'
     exclude group: 'org.jetbrains.kotlinx'
@@ -46,11 +41,20 @@ configurations.all {
     exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-common'
     exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
     exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
 }
 
-// Force exclude Kotlin from all dependencies
+// Force resolution to prevent any Kotlin dependencies
 configurations.all {
     resolutionStrategy {
+        force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.20'
+        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.20'
+        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.20'
+        force 'org.jetbrains.kotlin:kotlin-stdlib-common:1.8.20'
+        
         eachDependency { details ->
             if (details.requested.group == 'org.jetbrains.kotlin') {
                 details.useTarget group: 'org.jetbrains.kotlin', name: details.requested.name, version: '1.8.20'

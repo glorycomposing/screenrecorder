@@ -45,7 +45,7 @@ public class MainActivity extends Activity {
         getWindow().setFlags(android.view.WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM, 
                            android.view.WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
         
-        // Create a simple layout
+        // Create a simple layout using only basic Android views
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(50, 50, 50, 50);
