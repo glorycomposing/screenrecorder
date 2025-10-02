@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
+import dynamic from 'next/dynamic'
 import { useSupabase } from './_app'
 import { Play, Pause, Download, Trash2, Calendar, Clock, HardDrive } from 'lucide-react'
 
@@ -11,11 +12,10 @@ interface Recording {
   file_size: number
 }
 
-export default function Dashboard() {
+function DashboardContent() {
   const [recordings, setRecordings] = useState<Recording[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [mounted, setMounted] = useState(false)
   const supabase = useSupabase()
 
   // Custom date formatting to avoid hydration issues
@@ -47,7 +47,6 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    setMounted(true)
     fetchRecordings()
   }, [])
 
@@ -121,7 +120,7 @@ export default function Dashboard() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
-  if (!mounted || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
@@ -190,7 +189,7 @@ export default function Dashboard() {
                             {recording.file_name}
                           </h3>
                           <p className="text-sm text-gray-500">
-                            {mounted ? formatDate(recording.created_at) : 'Loading...'}
+                            {formatDate(recording.created_at)}
                           </p>
                         </div>
                       </div>
@@ -218,7 +217,7 @@ export default function Dashboard() {
                       </div>
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {mounted ? formatDateShort(recording.created_at) : 'Loading...'}
+                        {formatDateShort(recording.created_at)}
                       </div>
                     </div>
                   </div>
@@ -231,6 +230,16 @@ export default function Dashboard() {
     </>
   )
 }
+
+// Export as dynamic component to prevent hydration issues
+export default dynamic(() => Promise.resolve(DashboardContent), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+    </div>
+  )
+})
 
 
 
