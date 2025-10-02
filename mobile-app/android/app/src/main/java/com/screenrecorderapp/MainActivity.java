@@ -179,9 +179,7 @@ public class MainActivity extends Activity {
             }
             
             // Use a background thread for cleanup to avoid blocking UI
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
+            new Thread(() -> {
                     try {
                         // Stop MediaRecorder first
                         if (mediaRecorder != null) {
@@ -247,16 +245,13 @@ public class MainActivity extends Activity {
                                     supabaseService.uploadRecording(recordingFile, fileName, new SupabaseService.UploadCallback() {
                                         @Override
                                         public void onSuccess(String fileUrl, String recordingId) {
-                                            runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    Toast.makeText(MainActivity.this,
-                                                            "Recording uploaded successfully!\nURL: " + fileUrl + "\nID: " + recordingId,
-                                                            Toast.LENGTH_LONG).show();
-                                                    
-                                                    // Update status text
-                                                    statusText.setText("Recording uploaded to cloud!");
-                                                }
+                                            runOnUiThread(() -> {
+                                                Toast.makeText(MainActivity.this,
+                                                        "Recording uploaded successfully!\nURL: " + fileUrl + "\nID: " + recordingId,
+                                                        Toast.LENGTH_LONG).show();
+                                                
+                                                // Update status text
+                                                statusText.setText("Recording uploaded to cloud!");
                                             });
                                             
                                             // Delete local file after successful upload
@@ -271,48 +266,36 @@ public class MainActivity extends Activity {
                                         
                                         @Override
                                         public void onError(String error) {
-                                            runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    Toast.makeText(MainActivity.this,
-                                                            "Upload failed: " + error + "\nFile saved locally: " + recordingPath,
-                                                            Toast.LENGTH_LONG).show();
-                                                    
-                                                    // Update status text
-                                                    statusText.setText("Recording saved locally (upload failed)");
-                                                }
+                                            runOnUiThread(() -> {
+                                                Toast.makeText(MainActivity.this,
+                                                        "Upload failed: " + error + "\nFile saved locally: " + recordingPath,
+                                                        Toast.LENGTH_LONG).show();
+                                                
+                                                // Update status text
+                                                statusText.setText("Recording saved locally (upload failed)");
                                             });
                                         }
                                         
                                         @Override
                                         public void onProgress(int progress) {
-                                            runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    progressText.setText("Uploading... " + progress + "%");
-                                                }
+                                            runOnUiThread(() -> {
+                                                progressText.setText("Uploading... " + progress + "%");
                                             });
                                         }
                                     });
                                 } else {
                                     // Show error message on UI thread
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Toast.makeText(MainActivity.this,
-                                                    "Recording stopped (file may be empty or missing)",
-                                                    Toast.LENGTH_SHORT).show();
-                                        }
+                                    runOnUiThread(() -> {
+                                        Toast.makeText(MainActivity.this,
+                                                "Recording stopped (file may be empty or missing)",
+                                                Toast.LENGTH_SHORT).show();
                                     });
                                 }
                         
                     } catch (Exception e) {
                         // Show error message on UI thread
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(MainActivity.this, "Recording stopped (with warnings)", Toast.LENGTH_SHORT).show();
-                            }
+                        runOnUiThread(() -> {
+                            Toast.makeText(MainActivity.this, "Recording stopped (with warnings)", Toast.LENGTH_SHORT).show();
                         });
                     }
                 }
@@ -513,34 +496,25 @@ public class MainActivity extends Activity {
         SupabaseTest.testConnection(this, new SupabaseTest.TestCallback() {
             @Override
             public void onSuccess(String message) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressText.setText("Database: " + message);
-                    }
+                runOnUiThread(() -> {
+                    progressText.setText("Database: " + message);
                 });
                 
                 // Test storage connection
                 SupabaseTest.testStorage(MainActivity.this, new SupabaseTest.TestCallback() {
                     @Override
                     public void onSuccess(String message) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                progressText.setText("Database: OK, Storage: " + message);
-                                Toast.makeText(MainActivity.this, "Supabase connection successful!", Toast.LENGTH_SHORT).show();
-                            }
+                        runOnUiThread(() -> {
+                            progressText.setText("Database: OK, Storage: " + message);
+                            Toast.makeText(MainActivity.this, "Supabase connection successful!", Toast.LENGTH_SHORT).show();
                         });
                     }
                     
                     @Override
                     public void onError(String error) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                progressText.setText("Database: OK, Storage: " + error);
-                                Toast.makeText(MainActivity.this, "Storage connection failed: " + error, Toast.LENGTH_LONG).show();
-                            }
+                        runOnUiThread(() -> {
+                            progressText.setText("Database: OK, Storage: " + error);
+                            Toast.makeText(MainActivity.this, "Storage connection failed: " + error, Toast.LENGTH_LONG).show();
                         });
                     }
                 });
@@ -548,12 +522,9 @@ public class MainActivity extends Activity {
             
             @Override
             public void onError(String error) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressText.setText("Database: " + error);
-                        Toast.makeText(MainActivity.this, "Database connection failed: " + error, Toast.LENGTH_LONG).show();
-                    }
+                runOnUiThread(() -> {
+                    progressText.setText("Database: " + error);
+                    Toast.makeText(MainActivity.this, "Database connection failed: " + error, Toast.LENGTH_LONG).show();
                 });
             }
         });
