@@ -40,9 +40,13 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Configure keyboard behavior to prevent IME errors
+        // Configure keyboard behavior to completely prevent IME interactions
         getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN | 
                                    android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
+        
+        // Disable IME completely for this activity
+        getWindow().setFlags(android.view.WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM, 
+                           android.view.WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
         
         // Create a simple layout
         LinearLayout layout = new LinearLayout(this);
@@ -121,6 +125,9 @@ public class MainActivity extends Activity {
         layout.addView(testButton);
         
         setContentView(layout);
+        
+        // Disable IME for all views to prevent keyboard interactions
+        disableIMEForView(layout);
         
         // Initialize Supabase service
         supabaseService = new SupabaseService(this);
@@ -407,36 +414,59 @@ public class MainActivity extends Activity {
     }
     
     private void updateUI() {
-        try {
-            if (isRecording) {
-                statusText.setText("Recording in progress...");
-                startButton.setEnabled(false);
-                stopButton.setEnabled(true);
-            } else {
-                statusText.setText("Ready to record");
-                startButton.setEnabled(true);
-                stopButton.setEnabled(false);
+        // Ensure UI updates happen on the main thread
+        runOnUiThread(() -> {
+            try {
+                if (isRecording) {
+                    statusText.setText("Recording in progress...");
+                    startButton.setEnabled(false);
+                    stopButton.setEnabled(true);
+                } else {
+                    statusText.setText("Ready to record");
+                    startButton.setEnabled(true);
+                    stopButton.setEnabled(false);
+                }
+            } catch (Exception e) {
+                // Handle any UI update errors gracefully
+                System.out.println("UI update error: " + e.getMessage());
             }
-        } catch (Exception e) {
-            // Handle any UI update errors gracefully
-            System.out.println("UI update error: " + e.getMessage());
-        }
+        });
     }
     
     private void hideKeyboardSafely() {
         try {
+            // Check if IME is even available before trying to hide it
             android.view.inputmethod.InputMethodManager imm = 
                 (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-            if (imm != null) {
+            if (imm != null && imm.isActive()) {
                 View currentFocus = getCurrentFocus();
-                if (currentFocus != null) {
+                if (currentFocus != null && currentFocus.getWindowToken() != null) {
+                    // Use a more gentle approach to hide keyboard
                     imm.hideSoftInputFromWindow(currentFocus.getWindowToken(), 
-                        android.view.inputmethod.InputMethodManager.HIDE_NOT_ALWAYS);
+                        android.view.inputmethod.InputMethodManager.HIDE_IMPLICIT_ONLY);
                 }
             }
         } catch (Exception e) {
-            // Ignore IME errors - they're often harmless and expected
-            System.out.println("Keyboard hide warning (expected): " + e.getMessage());
+            // Silently ignore IME errors - they're expected in this context
+            // No logging to reduce noise in logs
+        }
+    }
+    
+    private void disableIMEForView(View view) {
+        try {
+            // Disable IME for this view
+            view.setFocusable(false);
+            view.setFocusableInTouchMode(false);
+            
+            // If it's a ViewGroup, recursively disable IME for all children
+            if (view instanceof android.view.ViewGroup) {
+                android.view.ViewGroup viewGroup = (android.view.ViewGroup) view;
+                for (int i = 0; i < viewGroup.getChildCount(); i++) {
+                    disableIMEForView(viewGroup.getChildAt(i));
+                }
+            }
+        } catch (Exception e) {
+            // Ignore any errors in IME disabling
         }
     }
     
