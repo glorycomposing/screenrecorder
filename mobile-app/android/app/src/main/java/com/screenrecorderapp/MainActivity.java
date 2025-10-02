@@ -40,11 +40,9 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Hide keyboard to prevent IME issues
-        getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
-        
-        // Additional IME configuration to prevent errors
-        getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
+        // Configure keyboard behavior to prevent IME errors
+        getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN | 
+                                   android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
         
         // Create a simple layout
         LinearLayout layout = new LinearLayout(this);
@@ -132,18 +130,8 @@ public class MainActivity extends Activity {
     
     private void startRecording() {
         if (!isRecording) {
-            try {
-                // Hide keyboard before starting recording
-                android.view.inputmethod.InputMethodManager imm = 
-                    (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                if (imm != null) {
-                    try {
-                        imm.hideSoftInputFromWindow(getCurrentFocus() != null ? getCurrentFocus().getWindowToken() : null, 0);
-                    } catch (Exception imeError) {
-                        // Ignore IME errors - they're often harmless
-                        System.out.println("IME warning (expected): " + imeError.getMessage());
-                    }
-                }
+            // Hide keyboard before starting recording
+            hideKeyboardSafely();
                 
                 // Request screen capture permission
                 MediaProjectionManager mediaProjectionManager = 
@@ -163,20 +151,7 @@ public class MainActivity extends Activity {
             updateUI();
             
             // Hide keyboard before stopping recording
-            try {
-                android.view.inputmethod.InputMethodManager imm = 
-                    (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                if (imm != null) {
-                    try {
-                        imm.hideSoftInputFromWindow(getCurrentFocus() != null ? getCurrentFocus().getWindowToken() : null, 0);
-                    } catch (Exception imeError) {
-                        // Ignore IME errors - they're often harmless
-                        System.out.println("IME warning (expected): " + imeError.getMessage());
-                    }
-                }
-            } catch (Exception e) {
-                // Ignore IME errors
-            }
+            hideKeyboardSafely();
             
             // Use a background thread for cleanup to avoid blocking UI
             new Thread(() -> {
@@ -445,6 +420,23 @@ public class MainActivity extends Activity {
         } catch (Exception e) {
             // Handle any UI update errors gracefully
             System.out.println("UI update error: " + e.getMessage());
+        }
+    }
+    
+    private void hideKeyboardSafely() {
+        try {
+            android.view.inputmethod.InputMethodManager imm = 
+                (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                View currentFocus = getCurrentFocus();
+                if (currentFocus != null) {
+                    imm.hideSoftInputFromWindow(currentFocus.getWindowToken(), 
+                        android.view.inputmethod.InputMethodManager.HIDE_NOT_ALWAYS);
+                }
+            }
+        } catch (Exception e) {
+            // Ignore IME errors - they're often harmless and expected
+            System.out.println("Keyboard hide warning (expected): " + e.getMessage());
         }
     }
     
