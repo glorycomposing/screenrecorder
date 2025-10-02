@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { useSupabase } from './_app'
-import { format } from 'date-fns'
 import { Play, Pause, Download, Trash2, Calendar, Clock, HardDrive } from 'lucide-react'
 
 interface Recording {
@@ -16,9 +15,39 @@ export default function Dashboard() {
   const [recordings, setRecordings] = useState<Recording[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
   const supabase = useSupabase()
 
+  // Custom date formatting to avoid hydration issues
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString)
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    } catch {
+      return 'Invalid date'
+    }
+  }
+
+  const formatDateShort = (dateString: string): string => {
+    try {
+      const date = new Date(dateString)
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+      })
+    } catch {
+      return 'Invalid date'
+    }
+  }
+
   useEffect(() => {
+    setMounted(true)
     fetchRecordings()
   }, [])
 
@@ -92,7 +121,7 @@ export default function Dashboard() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
@@ -161,7 +190,7 @@ export default function Dashboard() {
                             {recording.file_name}
                           </h3>
                           <p className="text-sm text-gray-500">
-                            {format(new Date(recording.created_at), 'MMM d, yyyy h:mm a')}
+                            {mounted ? formatDate(recording.created_at) : 'Loading...'}
                           </p>
                         </div>
                       </div>
@@ -189,7 +218,7 @@ export default function Dashboard() {
                       </div>
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {format(new Date(recording.created_at), 'MMM d')}
+                        {mounted ? formatDateShort(recording.created_at) : 'Loading...'}
                       </div>
                     </div>
                   </div>
