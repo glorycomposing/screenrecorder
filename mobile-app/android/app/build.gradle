@@ -24,6 +24,22 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    
+    // Force all Kotlin dependencies to use the same version
+    configurations.all {
+        resolutionStrategy {
+            force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.20'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.20'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.20'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-common:1.8.20'
+            
+            eachDependency { details ->
+                if (details.requested.group == 'org.jetbrains.kotlin') {
+                    details.useTarget group: 'org.jetbrains.kotlin', name: details.requested.name, version: '1.8.20'
+                }
+            }
+        }
+    }
 }
 
 dependencies {
@@ -31,34 +47,4 @@ dependencies {
     // No external libraries that might pull in Kotlin dependencies
 }
 
-// Completely exclude all Kotlin dependencies
-configurations.all {
-    exclude group: 'org.jetbrains.kotlin'
-    exclude group: 'org.jetbrains.kotlinx'
-    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib'
-    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
-    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
-    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-common'
-    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
-    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
-    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
-    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
-    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
-    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
-}
-
-// Force resolution to prevent any Kotlin dependencies
-configurations.all {
-    resolutionStrategy {
-        force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.20'
-        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.20'
-        force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.20'
-        force 'org.jetbrains.kotlin:kotlin-stdlib-common:1.8.20'
-        
-        eachDependency { details ->
-            if (details.requested.group == 'org.jetbrains.kotlin') {
-                details.useTarget group: 'org.jetbrains.kotlin', name: details.requested.name, version: '1.8.20'
-            }
-        }
-    }
-}
+// Kotlin version resolution is handled at project level

@@ -1,4 +1,4 @@
-rootProject.name = 'ScreenRecorderApp'
+rootProject.name = 'ScreenRecorderApp-android'
 include ':app'
 
 
