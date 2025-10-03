@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 FINAL DASHBOARD - THIS WILL WORK</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 50%, #45b7d1 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 3rem;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .recording-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            min-height: 120px;
+            border: 3px solid #ff6b6b;
+        }
+
+        .play-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            flex-shrink: 0;
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .recording-info {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .recording-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .recording-date {
+            color: #666;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .recording-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 15px;
+            flex-shrink: 0;
+            align-items: center;
+            min-width: 400px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: none;
+            padding: 15px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            white-space: nowrap;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            min-width: 140px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            justify-content: center;
+        }
+
+        .btn-play {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-play:hover {
+            background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.5);
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+        }
+
+        .btn-download:hover {
+            background: linear-gradient(135deg, #0056b3 0%, #520dc2 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.5);
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn-delete:hover {
+            background: linear-gradient(135deg, #c82333 0%, #d63384 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.5);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: white;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            margin: 20px 0;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 15px;
+            color: white;
+            font-size: 2rem;
+        }
+
+        .error {
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 2px solid #dc3545;
+            font-weight: 600;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .recording-card {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 20px;
+            }
+            
+            .recording-info {
+                min-width: auto;
+            }
+            
+            .button-container {
+                justify-content: center;
+                flex-wrap: wrap;
+                min-width: auto;
+            }
+            
+            .btn {
+                flex: 1;
+                min-width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>
+            <span>🎬</span>
+            FINAL DASHBOARD - THIS WILL WORK
+        </h1>
+        <div class="subtitle">Screen Recorder Dashboard with Working Buttons</div>
+        <div class="recording-count" id="recordingCount" style="background: rgba(255,255,255,0.2); color: white; padding: 10px 25px; border-radius: 25px; font-size: 1.1rem; font-weight: bold; display: inline-block;">0 recordings</div>
+    </div>
+
+    <div class="container">
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="recordings"></div>
+    </div>
+
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://lvbrdodgvwnglhikrcnj.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2YnJkb2RndnduZ2xoaWtyY25qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1Mjc4NTAsImV4cCI6MjA3NDEwMzg1MH0.hD0bV9PLHsoserBm1arHvrB4DTL_FfA76waWjqLHymQ';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function loadRecordings() {
+            try {
+                const { data: recordings, error } = await supabase
+                    .from('recordings')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                displayRecordings(recordings || []);
+            } catch (error) {
+                showError('Failed to load recordings: ' + error.message);
+            }
+        }
+
+        function displayRecordings(recordings) {
+            const container = document.getElementById('recordings');
+            const countElement = document.getElementById('recordingCount');
+            
+            countElement.textContent = `${recordings.length} recording${recordings.length !== 1 ? 's' : ''}`;
+
+            if (recordings.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No recordings found</h3>
+                        <p>Record some screen content using your mobile app to see it here.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = recordings.map(recording => `
+                <div class="recording-card">
+                    <div class="play-icon">▶️</div>
+                    <div class="recording-info">
+                        <div class="recording-name">${recording.file_name}</div>
+                        <div class="recording-date">${formatDate(recording.created_at)}</div>
+                        <div class="recording-meta">
+                            <span>🔒 ${formatFileSize(recording.file_size)}</span>
+                            <span>📅 ${formatDateShort(recording.created_at)}</span>
+                        </div>
+                    </div>
+                    <div class="button-container">
+                        <button class="btn btn-play" onclick="playRecording('${recording.file_path}', '${recording.file_name}')">
+                            <span>▶️</span>
+                            PLAY
+                        </button>
+                        <button class="btn btn-download" onclick="downloadRecording('${recording.file_path}', '${recording.file_name}')">
+                            <span>⬇️</span>
+                            DOWNLOAD
+                        </button>
+                        <button class="btn btn-delete" onclick="deleteRecording('${recording.id}', '${recording.file_path}')">
+                            <span>🗑️</span>
+                            DELETE
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function playRecording(filePath, fileName) {
+            try {
+                const cleanFilePath = filePath.includes('/') ? filePath.split('/').pop() : filePath;
+                const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/screen-recordings/${cleanFilePath}`;
+                
+                console.log('Playing recording:', publicUrl);
+                showVideoModal(publicUrl, fileName);
+                
+            } catch (error) {
+                console.error('Play error:', error);
+                showError('Failed to play recording: ' + error.message);
+            }
+        }
+
+        function showVideoModal(videoUrl, fileName) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.9);
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+            `;
+            
+            const videoContainer = document.createElement('div');
+            videoContainer.style.cssText = `
+                background: white;
+                border-radius: 15px;
+                padding: 30px;
+                max-width: 90%;
+                max-height: 90%;
+                position: relative;
+                box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            `;
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '✕';
+            closeBtn.style.cssText = `
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                background: #ff4444;
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                cursor: pointer;
+                font-size: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            `;
+            
+            const title = document.createElement('h3');
+            title.textContent = fileName;
+            title.style.cssText = `
+                margin: 0 0 20px 0;
+                color: #333;
+                font-size: 1.5rem;
+            `;
+            
+            const video = document.createElement('video');
+            video.src = videoUrl;
+            video.controls = true;
+            video.autoplay = true;
+            video.style.cssText = `
+                width: 100%;
+                max-width: 800px;
+                height: auto;
+                border-radius: 10px;
+            `;
+            
+            videoContainer.appendChild(closeBtn);
+            videoContainer.appendChild(title);
+            videoContainer.appendChild(video);
+            modal.appendChild(videoContainer);
+            document.body.appendChild(modal);
+            
+            const closeModal = () => {
+                document.body.removeChild(modal);
+            };
+            
+            closeBtn.onclick = closeModal;
+            modal.onclick = (e) => {
+                if (e.target === modal) closeModal();
+            };
+            
+            const handleKeyPress = (e) => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                    document.removeEventListener('keydown', handleKeyPress);
+                }
+            };
+            document.addEventListener('keydown', handleKeyPress);
+        }
+
+        async function downloadRecording(filePath, fileName) {
+            try {
+                const cleanFilePath = filePath.includes('/') ? filePath.split('/').pop() : filePath;
+                
+                console.log('Downloading recording:', cleanFilePath);
+                
+                const { data, error } = await supabase.storage
+                    .from('screen-recordings')
+                    .download(cleanFilePath);
+
+                if (error) {
+                    console.error('Supabase API error:', error);
+                    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/screen-recordings/${cleanFilePath}`;
+                    console.log('Using fallback URL:', publicUrl);
+                    
+                    const a = document.createElement('a');
+                    a.href = publicUrl;
+                    a.download = fileName;
+                    a.target = '_blank';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    return;
+                }
+
+                const url = URL.createObjectURL(data);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('Download error:', error);
+                const cleanFilePath = filePath.includes('/') ? filePath.split('/').pop() : filePath;
+                const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/screen-recordings/${cleanFilePath}`;
+                window.open(publicUrl, '_blank');
+            }
+        }
+
+        async function deleteRecording(id, filePath) {
+            if (!confirm('Are you sure you want to delete this recording?')) {
+                return;
+            }
+
+            try {
+                const cleanFilePath = filePath.includes('/') ? filePath.split('/').pop() : filePath;
+                
+                const { error: storageError } = await supabase.storage
+                    .from('screen-recordings')
+                    .remove([cleanFilePath]);
+
+                if (storageError) {
+                    console.error('Storage delete error:', storageError);
+                }
+
+                const { error: dbError } = await supabase
+                    .from('recordings')
+                    .delete()
+                    .eq('id', id);
+
+                if (dbError) throw dbError;
+
+                loadRecordings();
+            } catch (error) {
+                console.error('Delete error:', error);
+                showError('Failed to delete recording: ' + error.message);
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatDateShort(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Load recordings when page loads
+        document.addEventListener('DOMContentLoaded', loadRecordings);
+    </script>
+</body>
+</html>
